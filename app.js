@@ -3,6 +3,11 @@
 // load modules
 const express = require('express');
 const morgan = require('morgan');
+const { Sequelize } = require('sequelize');
+
+// import models
+const { sequelize, models } = require('./td-restapi.db');
+const { Courses, Users } = models;
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
@@ -19,6 +24,11 @@ app.get('/', (req, res) => {
     message: 'Welcome to the REST API project!',
   });
 });
+
+app.get('/api/users', (req, res) => {
+  const userData = Users.findAll();
+  console.log(userData.map(user => user.JSON()));
+})
 
 // send 404 if no other route matched
 app.use((req, res) => {
@@ -38,6 +48,24 @@ app.use((err, req, res, next) => {
     error: {},
   });
 });
+
+// andle Sequelize operation asynchronously
+console.log('Testing the connection to the database...');
+(async() => {
+  try {
+    // test connection to database
+    await sequelize.authenticate();
+    console.log('Connection to database was successful!')
+  }
+  catch (error) {
+    if (error.name === 'SequelizeValidationError') {
+      const errors = error.errors.map(err => err.message);
+      console.error('Validation errors: ', errors);
+    } else {
+      throw error;
+    }
+  }
+})();
 
 // set our port
 app.set('port', process.env.PORT || 5000);
