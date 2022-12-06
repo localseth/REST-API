@@ -3,11 +3,12 @@
 // load modules
 const express = require('express');
 const morgan = require('morgan');
-const { Sequelize } = require('sequelize');
+
+// load async handler
+const { asyncHandler } = require('./middleware/asyncHandler');
 
 // import models
-const { sequelize, models } = require('./td-restapi.db');
-const { Courses, Users } = models;
+const { sequelize, Course, User } = require('./models');
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
@@ -18,6 +19,9 @@ const app = express();
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
 
+// setup json parsing for request body
+app.use(express.json());
+
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {
   res.json({
@@ -25,10 +29,23 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/api/users', (req, res) => {
-  const userData = Users.findAll();
-  console.log(userData.map(user => user.JSON()));
-})
+console.log(User);
+
+// user routes
+app.get('/api/users', asyncHandler(async (req, res) => {
+  console.log('searching for users...');
+  const userData = await User.findAll({
+    attributes: ['firstName', 'lastName', 'emailAddress', 'password'],
+  });
+  const userJSON = userData.map(user => user.get({plain: true}));
+  res.json(userJSON)
+}));
+
+// courses routes
+app.get('/api/courses', (req, res) => {
+  const courseData = Course.findAll();
+  res.json({data: courseData})
+});
 
 // send 404 if no other route matched
 app.use((req, res) => {
@@ -49,13 +66,20 @@ app.use((err, req, res, next) => {
   });
 });
 
-// andle Sequelize operation asynchronously
+// set our port
+app.set('port', process.env.PORT || 5000);
+
+// handle Sequelize operation asynchronously
 console.log('Testing the connection to the database...');
 (async() => {
   try {
     // test connection to database
     await sequelize.authenticate();
-    console.log('Connection to database was successful!')
+    console.log('Connection to database was successful!');
+
+    // Sync the models
+    console.log('Synchronizing the models with the database...');
+    await sequelize.sync({ force: true });
   }
   catch (error) {
     if (error.name === 'SequelizeValidationError') {
@@ -66,9 +90,6 @@ console.log('Testing the connection to the database...');
     }
   }
 })();
-
-// set our port
-app.set('port', process.env.PORT || 5000);
 
 // start listening on our port
 const server = app.listen(app.get('port'), () => {
