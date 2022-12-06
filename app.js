@@ -29,8 +29,6 @@ app.get('/', (req, res) => {
   });
 });
 
-console.log(User);
-
 // user routes
 app.get('/api/users', asyncHandler(async (req, res) => {
   console.log('searching for users...');
