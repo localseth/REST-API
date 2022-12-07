@@ -4,8 +4,14 @@ exports.asyncHandler = (cb) => {
       try {
         await cb(req, res, next);
       } catch (error) {
-        // Forward error to the global error handler
-        next(error);
+        if (error.name === 'SequelizeValidationError') {
+          const errors = error.errors.map(err => err.message);
+          console.error('Validation errors: ', errors);
+          next(error);
+        } else {
+          // throw error;
+          next(error);
+        }
       }
     }
   }

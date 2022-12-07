@@ -4,7 +4,8 @@
     "password": null,
     "host": "127.0.0.1",
     "dialect": "sqlite",
-    "database": "td-restapi.db"
+    "database": "td-restapi.db",
+    "storage": "td-restapi.db"
   },
   "test": {
     "username": "root",

@@ -3,12 +3,10 @@
 // load modules
 const express = require('express');
 const morgan = require('morgan');
-
-// load async handler
-const { asyncHandler } = require('./middleware/asyncHandler');
+const routes = require('./routes');
 
 // import models
-const { sequelize, Course, User } = require('./models');
+const { sequelize } = require('./models');
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
@@ -29,21 +27,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// user routes
-app.get('/api/users', asyncHandler(async (req, res) => {
-  console.log('searching for users...');
-  const userData = await User.findAll({
-    attributes: ['firstName', 'lastName', 'emailAddress', 'password'],
-  });
-  const userJSON = userData.map(user => user.get({plain: true}));
-  res.json(userJSON)
-}));
-
-// courses routes
-app.get('/api/courses', (req, res) => {
-  const courseData = Course.findAll();
-  res.json({data: courseData})
-});
+// add routes
+app.use('/api', routes);
 
 // send 404 if no other route matched
 app.use((req, res) => {
@@ -77,15 +62,10 @@ console.log('Testing the connection to the database...');
 
     // Sync the models
     console.log('Synchronizing the models with the database...');
-    await sequelize.sync({ force: true });
+    await sequelize.sync();
   }
   catch (error) {
-    if (error.name === 'SequelizeValidationError') {
-      const errors = error.errors.map(err => err.message);
-      console.error('Validation errors: ', errors);
-    } else {
-      throw error;
-    }
+    console.log('Unable to connect to the database');
   }
 })();
 
