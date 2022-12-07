@@ -19,8 +19,9 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
 router.post('/users', authenticateUser, asyncHandler(async (req, res) => {
     console.log('creating new user');
     await User.create(req.body);
-    res.set('Location', '/');
-    res.status(201).json({message: `User account for ${req.body.emailAddress} successfully created`});
+    res.redirect(201,'/');
+    // res.set('Location', '/');
+    // res.status(201).json({message: `User account for ${req.body.emailAddress} successfully created`});
 }))
   
 // courses routes
