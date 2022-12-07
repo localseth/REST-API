@@ -19,9 +19,9 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
 router.post('/users', authenticateUser, asyncHandler(async (req, res) => {
     console.log('creating new user');
     await User.create(req.body);
-    res.redirect(201,'/');
-    // res.set('Location', '/');
-    // res.status(201).json({message: `User account for ${req.body.emailAddress} successfully created`});
+    res.set('Location', '/')
+        .status(201)
+        .end();
 }))
   
 // courses routes
@@ -55,9 +55,28 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
 }));
 
 router.post('/courses', asyncHandler(async (req, res) => {
-    console.log('creating new course...');
+    console.log('Creating new course...');
     const newCourse = await Course.create(req.body);
-    res.redirect(201, `/courses/${newCourse.id}`);
+    res.set('Location', `/courses/${newCourse.id}`)
+        .status(201)
+        .end();
 }));
+
+router.put('/courses/:id', asyncHandler(async (req, res) => {
+    console.log('Updating course ' + req.params.id + '...');
+    await Course.update( req.body,
+        {
+            where: {id: req.params.id}
+        }
+    );
+    console.log('Course has been updated');
+    res.status(204).end();
+}));
+
+router.delete('/courses/:id', asyncHandler(async (req, res) => {
+    console.log('Deleting course ' + req.params.id + '...');
+    await Course.destroy({ where: { id: req.params.id } });
+    res.status(204).end();
+}))
 
 module.exports = router;
