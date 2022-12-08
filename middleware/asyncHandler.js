@@ -10,6 +10,11 @@ exports.asyncHandler = (cb) => {
           error.status = 400;
           console.log('###**', error);
           next(error);
+        } else if(error.name === 'SequelizeUniqueConstraintError') {
+          const errors = error.errors.map(err => err.message);
+          console.error('Constraint errors: ', errors);
+          error.status = 400;
+          next(error);
         } else {
           // throw error;
           next(error);

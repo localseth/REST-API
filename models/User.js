@@ -2,6 +2,7 @@
 
 const Sequelize = require('sequelize');
 const { Model, DataTypes } = Sequelize;
+const bcrypt = require('bcrypt');
 
 module.exports = (sequelize) => {
     class User extends Model {}
@@ -32,6 +33,7 @@ module.exports = (sequelize) => {
         },
         emailAddress: {
             type: DataTypes.STRING,
+            unique: { msg: 'Email address already exists' },
             allowNull: false,
             validate: {
                 notNull: {
@@ -42,7 +44,7 @@ module.exports = (sequelize) => {
                 },
                 isEmail: {
                     msg: 'Please provide a valid email: Format should look like user@website.com'
-                }
+                },
             }
         },
         password: {
@@ -73,6 +75,11 @@ module.exports = (sequelize) => {
             },
         })
     };
+    // hash password before storing to database
+    User.addHook(
+        "beforeCreate",
+        user => (user.password = bcrypt.hashSync(user.password, 10))
+      );
 
     return User;
 }
