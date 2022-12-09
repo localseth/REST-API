@@ -6,11 +6,13 @@ const models = require('./models');
 const { User, Course } = models;
 const auth = require('basic-auth');
 const { authenticateUser } = require('./middleware/authUser');
+const { verifyOwner } = require('./middleware/verifyOwner');
 
 // Construct a router instance.
 const router = express.Router();
 
-// user routes
+// USER ROUTES
+// get current user
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
     const credentials = auth(req);
     console.log('searching for user...', credentials.name);
@@ -25,7 +27,8 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
     res.json(user);
 }));
 
-router.post('/users', authenticateUser, asyncHandler(async (req, res) => {
+// create a new user
+router.post('/users', asyncHandler(async (req, res) => {
     console.log('creating new user');
     await User.create(req.body);
     res.set('Location', '/')
@@ -33,14 +36,15 @@ router.post('/users', authenticateUser, asyncHandler(async (req, res) => {
         .end();
 }))
   
-// courses routes
+// COURESE ROUTES
+// get list of courses
 router.get('/courses', asyncHandler(async (req, res) => {
     const courseData = await Course.findAll({
         include: [
             {
                 model: User,
                 attributes: ['firstName', 'lastName'], 
-                as: 'user'
+                as: 'owner'
             }
         ],
         attributes: {
@@ -50,6 +54,7 @@ router.get('/courses', asyncHandler(async (req, res) => {
     res.json(courseData);
 }));
 
+// get course identified in request parameters
 router.get('/courses/:id', asyncHandler(async (req, res) => {
     const course = await Course.findOne({
         where: {
@@ -59,16 +64,21 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
             {
                 model: User,
                 attributes: ['firstName', 'lastName'],
-                as: 'user'
+                as: 'owner'
             }
         ],
         attributes: {
             exclude: ['createdAt', 'updatedAt']
         },
     });
-    res.json(course);
+    if(course){
+        res.json(course);
+    } else {
+        res.json({message: 'Course not found for ID: ' + req.params.id});
+    }
 }));
 
+// create a new course
 router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
     console.log('Creating new course...');
     const newCourse = await Course.create(req.body);
@@ -77,7 +87,8 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
         .end();
 }));
 
-router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
+// update a course (must be verified and authenticated)
+router.put('/courses/:id', verifyOwner, authenticateUser, asyncHandler(async (req, res) => {
     console.log('Updating course ' + req.params.id + '...');
     await Course.update( req.body,
         {
@@ -88,11 +99,11 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
     res.status(204).end();
 }));
 
-router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
+// delete a course (must be verified and authenticated)
+router.delete('/courses/:id', verifyOwner, authenticateUser, asyncHandler(async (req, res) => {
     const testCourse = await Course.findAll({where:{id: req.params.id}, limit: 1});
-    console.log(testCourse);
-    if (testCourse.length > 0) {
-        console.log('course exists because length is ', testCourse.Course);
+    console.log('course exists: ', (testCourse ? 'true' : 'false'));
+    if (testCourse[0]) {
         console.log('Deleting course ' + req.params.id + '...');
         await Course.destroy({ where: { id: req.params.id } });
         res.status(204).end();

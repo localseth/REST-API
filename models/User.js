@@ -33,7 +33,10 @@ module.exports = (sequelize) => {
         },
         emailAddress: {
             type: DataTypes.STRING,
-            unique: { msg: 'Email address already exists' },
+            unique: { 
+                args: true,
+                msg: 'Email address already exists, please choose a unique email address'
+            },
             allowNull: false,
             validate: {
                 notNull: {
@@ -67,7 +70,7 @@ module.exports = (sequelize) => {
 
     User.associate = (models) => {
         User.hasMany(models.Course, {
-            as: 'user',
+            as: 'owner',
             foreignKey: {
                 fieldName: 'userId',
                 field: 'userId',
