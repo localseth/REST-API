@@ -15,6 +15,7 @@ exports.verifyOwner = async (req, res, next) => {
             console.log('current user id: ', currentUser.dataValues.id);
             if (courseOwner.dataValues.id === currentUser.dataValues.id) {
                 console.log('Owner verified! Passing to authorization handler...');
+                next();
             } else {
                 message = 'Current user is not the owner of the course';
             }
