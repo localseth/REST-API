@@ -43,7 +43,7 @@ router.get('/courses', asyncHandler(async (req, res) => {
         include: [
             {
                 model: User,
-                attributes: ['firstName', 'lastName'], 
+                attributes: ['firstName', 'lastName', 'emailAddress'], 
                 as: 'owner'
             }
         ],
@@ -63,7 +63,7 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
         include: [
             {
                 model: User,
-                attributes: ['firstName', 'lastName'],
+                attributes: ['firstName', 'lastName', 'emailAddress'],
                 as: 'owner'
             }
         ],

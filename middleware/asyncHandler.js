@@ -8,6 +8,7 @@ exports.asyncHandler = (cb) => {
             const errors = error.errors.map(err => err.message);
             console.error('Validation errors: ', errors);
             error.status = 400;
+            console.log(error.status);
             next(error);
         } else if(error.name === 'SequelizeUniqueConstraintError') {
             const errors = error.errors.map(err => err.message);
