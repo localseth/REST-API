@@ -90,11 +90,8 @@ router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
 // update a course (must be verified and authenticated)
 router.put('/courses/:id', verifyOwner, authenticateUser, asyncHandler(async (req, res) => {
     console.log('Updating course ' + req.params.id + '...');
-    await Course.update( req.body,
-        {
-            where: {id: req.params.id}
-        }
-    );
+    const course = await Course.findByPk(req.params.id);
+    await course.update( req.body );
     console.log('Course has been updated');
     res.status(204).end();
 }));
