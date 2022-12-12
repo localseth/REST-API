@@ -46,8 +46,7 @@ app.use((err, req, res, next) => {
     console.error(`Global error handler: ${JSON.stringify(err.stack)}`);
   };
   res.status(err.status || 500).json({
-    message: errorMessages.map(err => err.message),
-    error: err.status
+    message: errorMessages.map(err => err.message)
   });
 });
 
